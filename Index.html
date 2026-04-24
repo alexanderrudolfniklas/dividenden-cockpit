@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dividenden Cockpit</title>
+  <style>
+    :root {
+      --bg: #07111f;
+      --card: #111c2e;
+      --card2: #17243a;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --green: #34d399;
+      --green2: #10b981;
+      --border: #26364f;
+      --red: #ef4444;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(52,211,153,.18), transparent 35%),
+        linear-gradient(180deg, #07111f, #0f172a);
+      color: var(--text);
+      padding: 18px;
+      padding-bottom: 90px;
+    }
+
+    .app { max-width: 900px; margin: auto; }
+
+    .hero {
+      padding: 22px;
+      border-radius: 28px;
+      background: linear-gradient(135deg, rgba(52,211,153,.18), rgba(17,28,46,.95));
+      border: 1px solid rgba(52,211,153,.25);
+      box-shadow: 0 20px 40px rgba(0,0,0,.3);
+      margin-bottom: 16px;
+    }
+
+    .badge {
+      display: inline-block;
+      font-size: 12px;
+      color: var(--green);
+      background: rgba(52,211,153,.12);
+      padding: 7px 11px;
+      border-radius: 999px;
+      margin-bottom: 12px;
+    }
+
+    h1 { margin: 0; font-size: 30px; line-height: 1.1; }
+    h2 { margin: 0 0 14px; font-size: 20px; }
+
+    .subtitle {
+      color: var(--muted);
+      margin-top: 8px;
+      font-size: 15px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .card {
+      background: rgba(17,28,46,.92);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 18px;
+      box-shadow: 0 12px 28px rgba(0,0,0,.25);
+    }
+
+    .label { color: var(--muted); font-size: 13px; }
+
+    .value {
+      font-size: 28px;
+      font-weight: 800;
+      margin-top: 6px;
+      color: var(--green);
+    }
+
+    .small {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    input, select, button {
+      width: 100%;
+      padding: 13px;
+      margin-top: 9px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      font-size: 15px;
+    }
+
+    input, select {
+      background: #0f1b2e;
+      color: white;
+    }
+
+    button {
+      background: linear-gradient(135deg, var(--green), var(--green2));
+      color: #03140e;
+      font-weight: 800;
+      border: none;
+      cursor: pointer;
+    }
+
+    .stock-card {
+      background: var(--card2);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 14px;
+      margin-bottom: 10px;
+    }
+
+    .stock-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .stock-name { font-weight: 800; font-size: 16px; }
+
+    .stock-meta {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 3px;
+    }
+
+    .stock-values {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .mini {
+      background: rgba(15,23,42,.7);
+      border-radius: 14px;
+      padding: 10px;
+    }
+
+    .mini span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .mini strong {
+      display: block;
+      margin-top: 3px;
+      color: var(--green);
+    }
+
+    .delete {
+      width: auto;
+      padding: 7px 10px;
+      margin: 0;
+      background: rgba(239,68,68,.15);
+      color: #fecaca;
+      border: 1px solid rgba(239,68,68,.35);
+    }
+
+    .details-box {
+      margin-bottom: 10px;
+      background: var(--card2);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      overflow: hidden;
+    }
+
+    .details-box summary {
+      cursor: pointer;
+      padding: 14px;
+      font-weight: 800;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      list-style: none;
+    }
+
+    .details-box summary::-webkit-details-marker { display: none; }
+
+    .details-content { padding: 0 14px 14px; }
+
+    .bar-bg {
+      height: 10px;
+      background: #0f1b2e;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--green2), var(--green));
+      border-radius: 999px;
+    }
+
+    .country-title {
+      margin-top: 18px;
+      margin-bottom: 8px;
+      color: var(--green);
+      font-weight: 800;
+    }
+
+    .nav {
+      position: fixed;
+      left: 12px;
+      right: 12px;
+      bottom: 12px;
+      max-width: 900px;
+      margin: auto;
+      background: rgba(15,23,42,.92);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      padding: 8px;
+      gap: 6px;
+    }
+
+    .nav button {
+      margin: 0;
+      padding: 11px 5px;
+      border-radius: 17px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .nav button.active {
+      background: rgba(52,211,153,.16);
+      color: var(--green);
+    }
+
+    .section { display: none; }
+    .section.active { display: block; }
+
+    @media (min-width: 700px) {
+      .grid { grid-template-columns: repeat(3, 1fr); }
+      h1 { font-size: 42px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+
+    <div class="hero">
+      <div class="badge">💸 Persönliches Cashflow-Cockpit</div>
+      <h1>Dividenden Cockpit</h1>
+      <div class="subtitle">Dein Überblick über Brutto, Netto, Monatsfluss und Dividendenziele.</div>
+    </div>
+
+    <section id="dashboard" class="section active">
+      <div class="grid">
+        <div class="card">
+          <div class="label">Jahresdividende brutto</div>
+          <div class="value" id="grossYear">0 €</div>
+          <div class="small">vor Steuern</div>
+        </div>
+
+        <div class="card">
+          <div class="label">Jahresdividende netto</div>
+          <div class="value" id="netYear">0 €</div>
+          <div class="small">nach Steuerannahme</div>
+        </div>
+
+        <div class="card">
+          <div class="label">Monatsdurchschnitt netto</div>
+          <div class="value" id="netMonth">0 €</div>
+          <div class="small">durchschnittlicher Cashflow</div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px;">
+        <h2>Monatsübersicht</h2>
+        <div id="dashboardMonths"></div>
+      </div>
+
+      <div class="card" style="margin-top:14px;">
+        <h2>Top 5 Dividendenzahler nach Land</h2>
+        <div id="countryTop"></div>
+      </div>
+    </section>
+
+    <section id="portfolioSection" class="section">
+      <div class="card">
+        <h2>Portfolio</h2>
+        <div id="portfolio"></div>
+      </div>
+    </section>
+
+    <section id="add" class="section">
+      <div class="card">
+        <h2>Neue Aktie hinzufügen</h2>
+
+        <input id="name" placeholder="Unternehmen, z. B. Allianz" />
+        <input id="country" placeholder="Land, z. B. Deutschland, USA, Kanada" />
+        <input id="shares" type="number" placeholder="Anzahl Aktien" />
+        <input id="dividend" type="number" step="0.01" placeholder="Dividende pro Aktie pro Jahr" />
+        <input id="tax" type="number" step="0.1" placeholder="Steuer in %, z. B. 26.38" />
+
+        <select id="frequency">
+          <option value="12">monatlich</option>
+          <option value="4">quartalsweise</option>
+          <option value="2">halbjährlich</option>
+          <option value="1">jährlich</option>
+        </select>
+
+        <button onclick="addStock()">Aktie hinzufügen</button>
+      </div>
+    </section>
+
+    <section id="goals" class="section">
+      <div class="card">
+        <div class="label">Ziel: 500 € netto pro Monat</div>
+        <div class="value" id="goalProgress">0%</div>
+        <div class="small" id="goalText">Noch keine Daten</div>
+      </div>
+
+      <div class="card" style="margin-top:14px;">
+        <h2>Simulation</h2>
+        <div class="stock-card">
+          <div class="stock-name">+10% mehr Aktien</div>
+          <div class="stock-meta" id="sim10"></div>
+        </div>
+        <div class="stock-card">
+          <div class="stock-name">+25% mehr Aktien</div>
+          <div class="stock-meta" id="sim25"></div>
+        </div>
+        <div class="stock-card">
+          <div class="stock-name">+50% mehr Aktien</div>
+          <div class="stock-meta" id="sim50"></div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <div class="nav">
+    <button class="active" onclick="showTab('dashboard', this)">Home</button>
+    <button onclick="showTab('portfolioSection', this)">Portfolio</button>
+    <button onclick="showTab('add', this)">Hinzufügen</button>
+    <button onclick="showTab('goals', this)">Ziele</button>
+  </div>
+
+<script>
+  let stocks = JSON.parse(localStorage.getItem("stocks")) || [
+    { name: "Allianz", country: "Deutschland", shares: 18, dividend: 13.8, tax: 26.38, frequency: 1 },
+    { name: "Realty Income", country: "USA", shares: 75, dividend: 3.08, tax: 26.38, frequency: 12 },
+    { name: "Enbridge", country: "Kanada", shares: 90, dividend: 2.55, tax: 25, frequency: 4 },
+    { name: "OMV", country: "Österreich", shares: 55, dividend: 5.05, tax: 27.5, frequency: 1 }
+  ];
+
+  const monthNames = [
+    "Januar", "Februar", "März", "April", "Mai", "Juni",
+    "Juli", "August", "September", "Oktober", "November", "Dezember"
+  ];
+
+  function euro(value) {
+    return value.toLocaleString("de-DE", {
+      style: "currency",
+      currency: "EUR"
+    });
+  }
+
+  function save() {
+    localStorage.setItem("stocks", JSON.stringify(stocks));
+  }
+
+  function showTab(id, btn) {
+    document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
+    document.getElementById(id).classList.add("active");
+
+    document.querySelectorAll(".nav button").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+  }
+
+  function addStock() {
+    const stock = {
+      name: document.getElementById("name").value,
+      country: document.getElementById("country").value || "Ohne Land",
+      shares: Number(document.getElementById("shares").value),
+      dividend: Number(document.getElementById("dividend").value),
+      tax: Number(document.getElementById("tax").value),
+      frequency: Number(document.getElementById("frequency").value)
+    };
+
+    if (!stock.name || !stock.shares || !stock.dividend) {
+      alert("Bitte mindestens Name, Stückzahl und Dividende eintragen.");
+      return;
+    }
+
+    stocks.push(stock);
+    save();
+    render();
+
+    document.getElementById("name").value = "";
+    document.getElementById("country").value = "";
+    document.getElementById("shares").value = "";
+    document.getElementById("dividend").value = "";
+    document.getElementById("tax").value = "";
+  }
+
+  function deleteStock(index) {
+    stocks.splice(index, 1);
+    save();
+    render();
+  }
+
+  function frequencyName(f) {
+    if (f === 12) return "monatlich";
+    if (f === 4) return "quartalsweise";
+    if (f === 2) return "halbjährlich";
+    return "jährlich";
+  }
+
+  function calcGross(s) {
+    return s.shares * s.dividend;
+  }
+
+  function calcNet(s) {
+    return calcGross(s) * (1 - (s.tax || 0) / 100);
+  }
+
+  function calcMonthly() {
+    const monthly = Array(12).fill(0);
+
+    stocks.forEach(s => {
+      const netAnnual = calcNet(s);
+      const payment = netAnnual / s.frequency;
+
+      if (s.frequency === 12) {
+        for (let i = 0; i < 12; i++) monthly[i] += payment;
+      } else if (s.frequency === 4) {
+        [2, 5, 8, 11].forEach(i => monthly[i] += payment);
+      } else if (s.frequency === 2) {
+        [5, 11].forEach(i => monthly[i] += payment);
+      } else {
+        monthly[4] += payment;
+      }
+    });
+
+    return monthly;
+  }
+
+  function render() {
+    const portfolio = document.getElementById("portfolio");
+    portfolio.innerHTML = "";
+
+    let grossYear = 0;
+    let netYear = 0;
+
+    stocks.forEach((s, index) => {
+      const gross = calcGross(s);
+      const net = calcNet(s);
+
+      grossYear += gross;
+      netYear += net;
+
+      portfolio.innerHTML += `
+        <div class="stock-card">
+          <div class="stock-top">
+            <div>
+              <div class="stock-name">${s.name}</div>
+              <div class="stock-meta">${s.country || "Ohne Land"} · ${s.shares} Aktien · ${frequencyName(s.frequency)}</div>
+            </div>
+            <button class="delete" onclick="deleteStock(${index})">Löschen</button>
+          </div>
+
+          <div class="stock-values">
+            <div class="mini">
+              <span>Brutto/Jahr</span>
+              <strong>${euro(gross)}</strong>
+            </div>
+            <div class="mini">
+              <span>Netto/Jahr</span>
+              <strong>${euro(net)}</strong>
+            </div>
+          </div>
+        </div>
+      `;
+    });
+
+    document.getElementById("grossYear").innerText = euro(grossYear);
+    document.getElementById("netYear").innerText = euro(netYear);
+    document.getElementById("netMonth").innerText = euro(netYear / 12);
+
+    document.getElementById("goalProgress").innerText =
+      Math.round((netYear / 12) / 500 * 100) + "%";
+
+    document.getElementById("goalText").innerText =
+      euro(netYear / 12) + " von 500 € monatlichem Ziel erreicht";
+
+    document.getElementById("sim10").innerText = euro(netYear * 1.10) + " netto/Jahr";
+    document.getElementById("sim25").innerText = euro(netYear * 1.25) + " netto/Jahr";
+    document.getElementById("sim50").innerText = euro(netYear * 1.50) + " netto/Jahr";
+
+    renderMonths();
+    renderCountryTop();
+  }
+
+  function renderMonths() {
+    const container = document.getElementById("dashboardMonths");
+    const monthly = calcMonthly();
+    const max = Math.max(...monthly, 1);
+
+    container.innerHTML = "";
+
+    monthNames.forEach((m, i) => {
+      const percent = (monthly[i] / max) * 100;
+
+      container.innerHTML += `
+        <details class="details-box">
+          <summary>
+            <span>${m}</span>
+            <span>${euro(monthly[i])}</span>
+          </summary>
+          <div class="details-content">
+            <div class="bar-bg">
+              <div class="bar" style="width:${percent}%"></div>
+            </div>
+            <div class="small" style="margin-top:8px;">
+              Geschätzte Netto-Dividende in diesem Monat
+            </div>
+          </div>
+        </details>
+      `;
+    });
+  }
+
+  function renderCountryTop() {
+    const container = document.getElementById("countryTop");
+    container.innerHTML = "";
+
+    const byCountry = {};
+
+    stocks.forEach(s => {
+      const country = s.country || "Ohne Land";
+      const net = calcNet(s);
+
+      if (!byCountry[country]) byCountry[country] = [];
+      byCountry[country].push({ ...s, net });
+    });
+
+    Object.keys(byCountry).sort().forEach(country => {
+      const top = byCountry[country]
+        .sort((a, b) => b.net - a.net)
+        .slice(0, 5);
+
+      container.innerHTML += `<div class="country-title">${country}</div>`;
+
+      top.forEach((s, index) => {
+        container.innerHTML += `
+          <div class="stock-card">
+            <div class="stock-top">
+              <div>
+                <div class="stock-name">${index + 1}. ${s.name}</div>
+                <div class="stock-meta">${s.shares} Aktien · ${frequencyName(s.frequency)}</div>
+              </div>
+              <strong style="color:var(--green);">${euro(s.net)}</strong>
+            </div>
+          </div>
+        `;
+      });
+    });
+  }
+
+  render();
+</script>
+</body>
+      </html>
+      
